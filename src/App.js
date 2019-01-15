@@ -7,7 +7,6 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.visitedStation = [];
-    this.result = {};
   }
 
   getRoutes = (srcLine, destLine) => {
