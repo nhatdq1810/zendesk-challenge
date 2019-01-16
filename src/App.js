@@ -4,17 +4,20 @@ import styles from './App.module.scss';
 import stations from './stations.json';
 
 class App extends Component {
-  getAdjStations = (srcLine) => {
+  getAdjStations = (srcLine, visitedStations) => {
     const adjStations = [];
+    const newVisitedStations = [...visitedStations];
+
     Object.keys(stations).forEach((name) => {
       const stationLines = Object.keys(stations[name]);
-      if (!this.visitedStations.includes(name) && stationLines.length > 1
+      if (!newVisitedStations.includes(name) && stationLines.length > 1
         && stationLines.includes(srcLine) && !adjStations.includes(name)) {
-        this.visitedStations.push(name);
+        newVisitedStations.push(name);
         adjStations.push(name);
       }
     });
-    return adjStations;
+
+    return { adjStations, visitedStations: newVisitedStations };
   }
 
   getRoutes = (srcLines, destLine) => {
@@ -25,7 +28,8 @@ class App extends Component {
       }
       if (!this.visitedLines.includes(srcLine)) {
         this.visitedLines.push(srcLine);
-        const adjStations = this.getAdjStations(srcLine);
+        const { adjStations, visitedStations } = this.getAdjStations(srcLine, this.visitedStations);
+        this.visitedStations = [...visitedStations];
         if (adjStations.length > 0) {
           adjStations.forEach((s) => {
             this.currentRoute.push(s);
@@ -41,13 +45,15 @@ class App extends Component {
 
   render() {
     this.routes = [];
-    const srcLines = Object.keys(stations.Admiralty);
-    Object.keys(stations['Boon Lay']).forEach((destLine) => {
-      this.currentRoute = ['Admiralty'];
-      this.visitedStations = ['Admiralty'];
+    const srcLines = Object.keys(stations['Boon Lay']);
+
+    Object.keys(stations.Admiralty).forEach((destLine) => {
+      this.currentRoute = ['Boon Lay'];
+      this.visitedStations = ['Boon Lay'];
       this.visitedLines = [];
       this.getRoutes(srcLines, destLine);
     });
+
     console.log(this.routes);
     return (
       <div className={styles.app}>
