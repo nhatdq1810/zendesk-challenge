@@ -3,23 +3,23 @@ import logo from './logo.svg';
 import styles from './App.module.scss';
 import stations from './stations.json';
 
+export const getAdjStations = (allStations, srcLine, visitedStations) => {
+  const adjStations = [];
+  const newVisitedStations = [...visitedStations];
+
+  Object.keys(allStations).forEach((name) => {
+    const stationLines = Object.keys(allStations[name]);
+    if (!newVisitedStations.includes(name) && stationLines.length > 1
+      && stationLines.includes(srcLine) && !adjStations.includes(name)) {
+      newVisitedStations.push(name);
+      adjStations.push(name);
+    }
+  });
+
+  return { adjStations, visitedStations: newVisitedStations };
+};
+
 class App extends Component {
-  getAdjStations = (srcLine, visitedStations) => {
-    const adjStations = [];
-    const newVisitedStations = [...visitedStations];
-
-    Object.keys(stations).forEach((name) => {
-      const stationLines = Object.keys(stations[name]);
-      if (!newVisitedStations.includes(name) && stationLines.length > 1
-        && stationLines.includes(srcLine) && !adjStations.includes(name)) {
-        newVisitedStations.push(name);
-        adjStations.push(name);
-      }
-    });
-
-    return { adjStations, visitedStations: newVisitedStations };
-  }
-
   getRoutes = (srcLines, destLine) => {
     srcLines.find((srcLine) => {
       if (srcLine === destLine) {
@@ -28,7 +28,7 @@ class App extends Component {
       }
       if (!this.visitedLines.includes(srcLine)) {
         this.visitedLines.push(srcLine);
-        const { adjStations, visitedStations } = this.getAdjStations(srcLine, this.visitedStations);
+        const { adjStations, visitedStations } = getAdjStations(stations, srcLine, this.visitedStations);
         this.visitedStations = [...visitedStations];
         if (adjStations.length > 0) {
           adjStations.forEach((s) => {
