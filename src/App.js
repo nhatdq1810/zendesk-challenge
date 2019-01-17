@@ -1,76 +1,123 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
+import { AutoComplete } from 'antd';
 import styles from './App.module.scss';
 import stations from './stations.json';
 
 export const getAdjStations = (allStations, srcLine, visitedStations) => {
   const adjStations = [];
-  const newVisitedStations = [...visitedStations];
+  const updatedVisitedStations = [...visitedStations];
 
   Object.keys(allStations).forEach((name) => {
     const stationLines = Object.keys(allStations[name]);
-    if (!newVisitedStations.includes(name) && stationLines.length > 1
-      && stationLines.includes(srcLine) && !adjStations.includes(name)) {
-      newVisitedStations.push(name);
+    if (!updatedVisitedStations.includes(name)
+      && stationLines.length > 1 && stationLines.includes(srcLine)) {
+      updatedVisitedStations.push(name);
       adjStations.push(name);
     }
   });
 
-  return { adjStations, visitedStations: newVisitedStations };
+  return { adjStations, visitedStations: updatedVisitedStations };
 };
 
 class App extends Component {
-  getRoutes = (srcLines, destLine) => {
+  constructor(props) {
+    super(props);
+    this.state = {
+      dataSrcStations: [],
+      originStation: undefined,
+      destStation: undefined,
+    };
+    this.routes = [];
+    this.stationNames = Object.keys(stations);
+  }
+
+
+  searchStations = (value, oldState) => this.stationNames.filter(sName => sName !== oldState.originStation
+      && sName !== oldState.destStation
+      && sName.toLowerCase().includes(value.toLowerCase()))
+
+  updateStateAfterSearch = (value, key) => {
+    console.log('updateStateAfterSearch');
+    this.setState(oldState => ({
+      dataSrcStations: this.searchStations(value, oldState),
+      [key]: value,
+    }));
+  }
+
+  searchOriginStation = (value) => {
+    this.updateStateAfterSearch(value, 'originStation');
+  }
+
+  searchDestStation = (value) => {
+    this.updateStateAfterSearch(value, 'destStation');
+  }
+
+  setOriginStation = (value) => {
+    console.log('setOriginStation');
+    this.setState({ originStation: value });
+  }
+
+  setDestStation = (value) => {
+    this.setState({ destStation: value });
+  }
+
+  getRoutesUtil = (srcLines, destLine) => {
     srcLines.find((srcLine) => {
       if (srcLine === destLine) {
         this.routes.push([...this.currentRoute]);
         return true;
       }
-      if (!this.visitedLines.includes(srcLine)) {
-        this.visitedLines.push(srcLine);
-        const { adjStations, visitedStations } = getAdjStations(stations, srcLine, this.visitedStations);
-        this.visitedStations = [...visitedStations];
-        if (adjStations.length > 0) {
-          adjStations.forEach((s) => {
-            this.currentRoute.push(s);
-            const nextSrcLines = Object.keys(stations[s]);
-            this.getRoutes(nextSrcLines, destLine);
-            this.currentRoute.pop();
-          });
-        }
+
+      const { adjStations, visitedStations } = getAdjStations(stations, srcLine, this.visitedStations);
+      this.visitedStations = [...visitedStations];
+
+      if (adjStations.length > 0) {
+        adjStations.forEach((s) => {
+          this.currentRoute.push(s);
+          const nextSrcLines = Object.keys(stations[s]);
+          this.getRoutesUtil(nextSrcLines, destLine);
+          this.currentRoute.pop();
+        });
       }
+
       return false;
     });
   }
 
-  render() {
+  getRoutes = (originStation, destStation) => {
+    const srcLines = Object.keys(stations[originStation]);
     this.routes = [];
-    const srcLines = Object.keys(stations['Boon Lay']);
 
-    Object.keys(stations.Admiralty).forEach((destLine) => {
-      this.currentRoute = ['Boon Lay'];
-      this.visitedStations = ['Boon Lay'];
-      this.visitedLines = [];
-      this.getRoutes(srcLines, destLine);
+    Object.keys(stations[destStation]).forEach((destLine) => {
+      this.currentRoute = [{ station: originStation, ...stations[originStation] }];
+      this.visitedStations = [originStation];
+      this.getRoutesUtil(srcLines, destLine);
     });
 
     console.log(this.routes);
+  }
+
+  render() {
+    const { dataSrcStations, originStation, destStation } = this.state;
+
+    if (originStation && destStation && stations[originStation] && stations[destStation]) {
+      this.getRoutes(originStation, destStation);
+    }
+
     return (
       <div className={styles.app}>
-        <header className={styles.appHeader}>
-          <img src={logo} className={styles.appLogo} alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className={styles.appLink}
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
+        <AutoComplete
+          dataSource={dataSrcStations}
+          onSearch={this.searchOriginStation}
+          onSelect={this.setOriginStation}
+          placeholder="Origin station"
+        />
+        <AutoComplete
+          dataSource={dataSrcStations}
+          onSearch={this.searchDestStation}
+          onSelect={this.setDestStation}
+          placeholder="Destination station"
+        />
       </div>
     );
   }
