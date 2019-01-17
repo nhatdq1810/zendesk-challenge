@@ -3,14 +3,14 @@ import { AutoComplete } from 'antd';
 import styles from './App.module.scss';
 import stations from './stations.json';
 
-export const getAdjStations = (allStations, srcLine, visitedStations) => {
+export const getAdjStations = (allStations, originLine, visitedStations) => {
   const adjStations = [];
   const updatedVisitedStations = [...visitedStations];
 
   Object.keys(allStations).forEach((name) => {
     const stationLines = Object.keys(allStations[name]);
     if (!updatedVisitedStations.includes(name)
-      && stationLines.length > 1 && stationLines.includes(srcLine)) {
+      && stationLines.length > 1 && stationLines.includes(originLine)) {
       updatedVisitedStations.push(name);
       adjStations.push(name);
     }
@@ -32,12 +32,12 @@ class App extends Component {
   }
 
 
-  searchStations = (value, oldState) => this.stationNames.filter(sName => sName !== oldState.originStation
-      && sName !== oldState.destStation
-      && sName.toLowerCase().includes(value.toLowerCase()))
+  searchStations = (value, oldState) => this.stationNames.filter(
+    sName => sName !== oldState.originStation && sName !== oldState.destStation
+      && sName.toLowerCase().includes(value.toLowerCase()),
+  )
 
   updateStateAfterSearch = (value, key) => {
-    console.log('updateStateAfterSearch');
     this.setState(oldState => ({
       dataSrcStations: this.searchStations(value, oldState),
       [key]: value,
@@ -53,7 +53,6 @@ class App extends Component {
   }
 
   setOriginStation = (value) => {
-    console.log('setOriginStation');
     this.setState({ originStation: value });
   }
 
@@ -61,21 +60,21 @@ class App extends Component {
     this.setState({ destStation: value });
   }
 
-  getRoutesUtil = (srcLines, destLine) => {
-    srcLines.find((srcLine) => {
-      if (srcLine === destLine) {
+  getRoutesUtil = (originLines, destLine) => {
+    originLines.find((originLine) => {
+      if (originLine === destLine) {
         this.routes.push([...this.currentRoute]);
         return true;
       }
 
-      const { adjStations, visitedStations } = getAdjStations(stations, srcLine, this.visitedStations);
+      const { adjStations, visitedStations } = getAdjStations(stations, originLine, this.visitedStations);
       this.visitedStations = [...visitedStations];
 
       if (adjStations.length > 0) {
         adjStations.forEach((s) => {
-          this.currentRoute.push(s);
-          const nextSrcLines = Object.keys(stations[s]);
-          this.getRoutesUtil(nextSrcLines, destLine);
+          this.currentRoute.push({ station: s, ...stations[s] });
+          const adjOriginLines = Object.keys(stations[s]);
+          this.getRoutesUtil(adjOriginLines, destLine);
           this.currentRoute.pop();
         });
       }
@@ -85,13 +84,13 @@ class App extends Component {
   }
 
   getRoutes = (originStation, destStation) => {
-    const srcLines = Object.keys(stations[originStation]);
+    const originLines = Object.keys(stations[originStation]);
     this.routes = [];
 
     Object.keys(stations[destStation]).forEach((destLine) => {
       this.currentRoute = [{ station: originStation, ...stations[originStation] }];
       this.visitedStations = [originStation];
-      this.getRoutesUtil(srcLines, destLine);
+      this.getRoutesUtil(originLines, destLine);
     });
 
     console.log(this.routes);
