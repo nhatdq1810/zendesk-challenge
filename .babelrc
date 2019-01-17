@@ -2,14 +2,18 @@
   "presets": [
     "react-app"
   ],
-  "plugins": [
-    [
-      "import",
-      {
-        "libraryName": "antd",
-        "libraryDirectory": "es",
-        "style": "css"
-      }
-    ]
-  ]
+  "env": {
+    "development": {
+      "plugins": [
+        [
+          "import",
+          {
+            "libraryName": "antd",
+            "libraryDirectory": "es",
+            "style": "css"
+          }
+        ]
+      ]
+    }
+  }
 }
