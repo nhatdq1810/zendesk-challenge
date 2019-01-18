@@ -26,8 +26,8 @@ class Home extends Component {
       dataSrcStations: [],
       originStation: undefined,
       destStation: undefined,
+      routes: [],
     };
-    this.routes = [];
     this.stationNames = Object.keys(stations);
   }
 
@@ -53,20 +53,39 @@ class Home extends Component {
   }
 
   setOriginStation = (value) => {
-    this.setState({ originStation: value });
+    this.setState(({ destStation }) => {
+      let newState = { originStation: value };
+
+      if (value && destStation && stations[value] && stations[destStation]) {
+        newState = { ...newState, routes: this.getRoutes(value, destStation) };
+      }
+
+      return newState;
+    });
   }
 
   setDestStation = (value) => {
-    this.setState({ destStation: value });
-  }
+    this.setState(({ originStation }) => {
+      let newState = { destStation: value };
 
-  getRoutesUtil = (originLines, destLine) => {
-    originLines.find((originLine) => {
-      if (originLine === destLine) {
-        this.routes.push([...this.currentRoute]);
-        return true;
+      if (value && originStation && stations[value] && stations[originStation]) {
+        newState = { ...newState, routes: this.getRoutes(originStation, value) };
       }
 
+      return newState;
+    });
+  }
+
+  getRoutesUtil = (routes, originLines, destLine) => {
+    if (originLines.some((originLine) => {
+      if (originLine === destLine) {
+        routes.push([...this.currentRoute]);
+        return true;
+      }
+      return false;
+    })) { return; }
+
+    originLines.forEach((originLine) => {
       const { adjStations, visitedStations } = getAdjStations(stations, originLine, this.visitedStations);
       this.visitedStations = [...visitedStations];
 
@@ -74,34 +93,29 @@ class Home extends Component {
         adjStations.forEach((s) => {
           this.currentRoute.push({ station: s, ...stations[s] });
           const adjOriginLines = Object.keys(stations[s]);
-          this.getRoutesUtil(adjOriginLines, destLine);
+          this.getRoutesUtil(routes, adjOriginLines, destLine);
           this.currentRoute.pop();
         });
       }
-
-      return false;
     });
   }
 
   getRoutes = (originStation, destStation) => {
     const originLines = Object.keys(stations[originStation]);
-    this.routes = [];
+    const routes = [];
 
     Object.keys(stations[destStation]).forEach((destLine) => {
       this.currentRoute = [{ station: originStation, ...stations[originStation] }];
       this.visitedStations = [originStation];
-      this.getRoutesUtil(originLines, destLine);
+      this.getRoutesUtil(routes, originLines, destLine);
     });
 
-    console.log(this.routes);
+    return routes;
   }
 
   render() {
-    const { dataSrcStations, originStation, destStation } = this.state;
-
-    if (originStation && destStation && stations[originStation] && stations[destStation]) {
-      this.getRoutes(originStation, destStation);
-    }
+    const { dataSrcStations, routes } = this.state;
+    console.log(routes);
 
     return (
       <div className={styles.app}>
