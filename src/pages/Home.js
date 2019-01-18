@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { AutoComplete } from 'antd';
-import styles from './App.module.scss';
-import stations from './stations.json';
+import styles from './Home.module.scss';
+import stations from '../utils/stations.json';
 
 export const getAdjStations = (allStations, originLine, visitedStations) => {
   const adjStations = [];
@@ -19,7 +19,7 @@ export const getAdjStations = (allStations, originLine, visitedStations) => {
   return { adjStations, visitedStations: updatedVisitedStations };
 };
 
-class App extends Component {
+class Home extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -122,4 +122,4 @@ class App extends Component {
   }
 }
 
-export default App;
+export default Home;
