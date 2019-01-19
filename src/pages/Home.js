@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {
-  AutoComplete, Timeline, Collapse, Icon,
+  AutoComplete, Timeline, Collapse, Icon, Empty,
 } from 'antd';
 import styles from './Home.module.scss';
 import stations from '../utils/stations.json';
@@ -223,62 +223,68 @@ class Home extends Component {
             placeholder="Choose destination station"
           />
         </div>
-        <div>
-          <Collapse accordion bordered={false}>
-            {orderedRoutes.map((route, i) => {
-              const displayedRoute = [];
-              let routeIntro = '';
-              route.forEach((station, j) => {
-                if (j === 0) {
-                  routeIntro = `Via line ${orderedRoutesByLines[i][j]} in station ${station.name}`;
-                  displayedRoute.push(
-                    <Timeline.Item
-                      color="red"
-                      dot={<Icon type="login" />}
-                      key={`${originStation} - ${station.name}`}
-                    >
-                      <b>
-                        Take line {orderedRoutesByLines[i][j]}
-                        &nbsp;from station {originStation} to station {station.name}
-                      </b>
-                    </Timeline.Item>,
-                  );
-                } else {
-                  displayedRoute.push(
-                    <Timeline.Item key={`${route[j - 1].name} - ${station.name}`}>
-                      <b>
-                        Take line {orderedRoutesByLines[i][j]}
-                        &nbsp;from station {route[j - 1].name} to station {station.name}
-                      </b>
-                    </Timeline.Item>,
-                  );
-                }
+        <div className={styles.routes}>
+          {orderedRoutes.length === 0
+            && <Empty description="Please choose origin station and destination station" />
+          }
+          {orderedRoutes.length > 0
+            && (
+              <Collapse accordion bordered={false}>
+                {orderedRoutes.map((route, i) => {
+                  const displayedRoute = [];
+                  let routeIntro = '';
+                  route.forEach((station, j) => {
+                    if (j === 0) {
+                      routeIntro = `Via line ${orderedRoutesByLines[i][j]} in station ${station.name}`;
+                      displayedRoute.push(
+                        <Timeline.Item
+                          color="red"
+                          dot={<Icon type="login" />}
+                          key={`${originStation} - ${station.name}`}
+                        >
+                          <b>
+                            Take line {orderedRoutesByLines[i][j]}
+                            &nbsp;from station {originStation} to station {station.name}
+                          </b>
+                        </Timeline.Item>,
+                      );
+                    } else {
+                      displayedRoute.push(
+                        <Timeline.Item key={`${route[j - 1].name} - ${station.name}`}>
+                          <b>
+                            Take line {orderedRoutesByLines[i][j]}
+                            &nbsp;from station {route[j - 1].name} to station {station.name}
+                          </b>
+                        </Timeline.Item>,
+                      );
+                    }
 
-                if (j === route.length - 1 && station.name !== destStation) {
-                  displayedRoute.push(
-                    <Timeline.Item
-                      color="green"
-                      dot={<Icon type="logout" />}
-                      key={`${station.name} - ${destStation}`}
-                    >
-                      <b>
-                        Take line {orderedRoutesByLines[i][orderedRoutesByLines[i].length - 1]}
-                        &nbsp;from station {station.name} to station {destStation}
-                      </b>
-                    </Timeline.Item>,
-                  );
-                }
-              });
+                    if (j === route.length - 1 && station.name !== destStation) {
+                      displayedRoute.push(
+                        <Timeline.Item
+                          color="green"
+                          dot={<Icon type="logout" />}
+                          key={`${station.name} - ${destStation}`}
+                        >
+                          <b>
+                            Take line {orderedRoutesByLines[i][orderedRoutesByLines[i].length - 1]}
+                            &nbsp;from station {station.name} to station {destStation}
+                          </b>
+                        </Timeline.Item>,
+                      );
+                    }
+                  });
 
-              return (
-                <Collapse.Panel header={routeIntro}>
-                  <Timeline>
-                    {displayedRoute}
-                  </Timeline>
-                </Collapse.Panel>
-              );
-            })}
-          </Collapse>
+                  return (
+                    <Collapse.Panel header={routeIntro}>
+                      <Timeline>
+                        {displayedRoute}
+                      </Timeline>
+                    </Collapse.Panel>
+                  );
+                })}
+              </Collapse>
+            )}
         </div>
       </div>
     );
