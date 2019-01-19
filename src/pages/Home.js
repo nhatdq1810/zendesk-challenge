@@ -76,10 +76,11 @@ class Home extends Component {
     });
   }
 
-  getRoutesUtil = (routes, originLines, destLine) => {
+  getRoutesUtil = (routes, routesByLines, originLines, destLine) => {
     if (originLines.some((originLine) => {
       if (originLine === destLine) {
         routes.push([...this.currentRoute]);
+        routesByLines.push([...this.currentRouteByLines, destLine]);
         return true;
       }
       return false;
@@ -88,34 +89,105 @@ class Home extends Component {
     originLines.forEach((originLine) => {
       const { adjStations, visitedStations } = getAdjStations(stations, originLine, this.visitedStations);
       this.visitedStations = [...visitedStations];
+      this.currentRouteByLines.push(originLine);
 
       if (adjStations.length > 0) {
         adjStations.forEach((s) => {
           this.currentRoute.push({ station: s, ...stations[s] });
           const adjOriginLines = Object.keys(stations[s]);
-          this.getRoutesUtil(routes, adjOriginLines, destLine);
+          this.getRoutesUtil(routes, routesByLines, adjOriginLines, destLine);
           this.currentRoute.pop();
         });
       }
+
+      this.currentRouteByLines.pop();
     });
+  }
+
+  getMinPoint = (originPoint, destPoint) => {
+    const points = [];
+    let originPoints = originPoint;
+    let destPoints = destPoint;
+    if (!originPoint.length) {
+      originPoints = [originPoint];
+    }
+    if (!destPoint.length) {
+      destPoints = [destPoint];
+    }
+
+    originPoints.forEach((originP) => {
+      destPoints.forEach((destP) => {
+        points.push(Math.abs(originP - destP));
+      });
+    });
+
+    return Math.min(...points);
+  }
+
+  getRoutePoints = (routes, routesByLines, originStation, destStation) => {
+    const routePoints = [];
+    routes.forEach((route, i) => {
+      if (route.length > 0) {
+        route.forEach((station, j) => {
+          if (j === 0) {
+            routePoints[i] = this.getMinPoint(originStation[routesByLines[i][j]], station[routesByLines[i][j]]);
+          } else {
+            const prevStation = route[j - 1];
+            routePoints[i] += this.getMinPoint(prevStation[routesByLines[i][j]], station[routesByLines[i][j]]);
+          }
+        });
+        routePoints[i] += this.getMinPoint(
+          route[route.length - 1][routesByLines[i][routesByLines[i].length - 1]],
+          destStation[routesByLines[i][routesByLines[i].length - 1]],
+        );
+      }
+    });
+    console.log('routePoints', routePoints);
+    return routePoints;
+  }
+
+  getOrderedRoutes = (routes, routePoints) => {
+    const orderedRoutes = [];
+    const visitedIdx = [];
+
+    while (visitedIdx.length < routePoints.length) {
+      let minPoint = 9999;
+      let minPointIdx = -1;
+      routePoints.forEach((p, idx) => {
+        if (!visitedIdx.includes(idx) && p < minPoint) {
+          minPointIdx = idx;
+          minPoint = p;
+        }
+      });
+      visitedIdx.push(minPointIdx);
+      orderedRoutes.push(routes[minPointIdx]);
+    }
+
+    console.log('orderedRoutes', orderedRoutes);
+    return orderedRoutes;
   }
 
   getRoutes = (originStation, destStation) => {
     const originLines = Object.keys(stations[originStation]);
     const routes = [];
+    const routesByLines = [];
 
     Object.keys(stations[destStation]).forEach((destLine) => {
-      this.currentRoute = [{ station: originStation, ...stations[originStation] }];
+      this.currentRoute = [];
+      this.currentRouteByLines = [];
       this.visitedStations = [originStation];
-      this.getRoutesUtil(routes, originLines, destLine);
+      this.getRoutesUtil(routes, routesByLines, originLines, destLine);
     });
 
-    return routes;
+    return this.getOrderedRoutes(
+      routes,
+      this.getRoutePoints(routes, routesByLines, stations[originStation], stations[destStation]),
+    );
   }
 
   render() {
-    const { dataSrcStations, routes } = this.state;
-    console.log(routes);
+    const { dataSrcStations } = this.state;
+    // console.log(routes);
 
     return (
       <div className={styles.app}>
