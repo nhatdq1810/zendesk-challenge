@@ -1,32 +1,21 @@
-.app {
-  text-align: center;
-}
-
-.appLogo {
-  animation: appLogoSpin infinite 20s linear;
-  height: 40vmin;
-}
-
-.appHeader {
-  background-color: #282c34;
+.wrapper {
+  display: flex;
+  padding: 32px 64px;
   min-height: 100vh;
+}
+
+.searchStation {
+  flex-basis: 25%;
+  padding-right: 2%;
+  margin-right: 2%;
+  border-right: 1px solid #d9d9d9;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
 }
 
-.appLink {
-  color: #61dafb;
-}
-
-@keyframes appLogoSpin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
+.searchStationInput {
+  width: 100%;
+  &:first-child {
+    margin-bottom: 5%;
   }
 }
