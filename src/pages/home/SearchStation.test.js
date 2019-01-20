@@ -4,6 +4,13 @@ import { shallow } from 'enzyme';
 import { AutoComplete } from 'antd';
 import SearchStation from './SearchStation';
 
+const createNodeMock = (el) => {
+  if (el.type === 'input') {
+    return { focus: jest.fn() };
+  }
+  return null;
+};
+
 describe('SearchStation', () => {
   const searchOriginStation = jest.fn();
   const setOriginStation = jest.fn();
@@ -26,6 +33,7 @@ describe('SearchStation', () => {
         searchDestStation={searchDestStation}
         setDestStation={setDestStation}
       />,
+      { createNodeMock },
     ).toJSON();
 
     expect(snapshot).toMatchSnapshot();
