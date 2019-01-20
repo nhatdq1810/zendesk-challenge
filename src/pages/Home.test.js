@@ -94,7 +94,7 @@ describe('getRoutes', () => {
 
     const routes = wrapper.instance().getRoutes(originStation, destStation);
 
-    expect(routes).toEqual({ orderedRoutes: [], orderedRoutesByLines: [] });
+    expect(routes).toEqual({ orderedRoutes: [[]], orderedRoutesByLines: [['NS']] });
   });
 
   it('should return correct routes when origin and destination do not have same line', () => {
@@ -106,10 +106,11 @@ describe('getRoutes', () => {
     expect(routes).toEqual({
       orderedRoutes: [
         [{ EW: 3, CC: 5, name: 'E' }],
-        [{ DT: 5, NS: 2, name: 'B' }, { DT: 10, SE: [2, 15], name: 'C' }, { EW: 4, SE: 3, name: 'D' }],
-      ],
+        [],
+        [{ DT: 5, NS: 2, name: 'B' }, { DT: 10, SE: [2, 15], name: 'C' }, { EW: 4, SE: 3, name: 'D' }]],
       orderedRoutesByLines: [
         ['CC', 'EW'],
+        ['CC'],
         ['NS', 'DT', 'SE', 'EW'],
       ],
     });

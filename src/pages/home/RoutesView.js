@@ -17,9 +17,8 @@ export default function RoutesView({
       {orderedRoutes.map((route, i) => {
         const displayedRoute = [];
         let routeIntro = '';
-
-        if (route.length === 1) {
-          if (route[0].name === destStation) {
+        if (route.length <= 1) {
+          if (route.length === 0 || route[0].name === destStation) {
             routeIntro = `Via line ${orderedRoutesByLines[i][0]}, station ${destStation}`;
             displayedRoute.push(
               <Timeline.Item

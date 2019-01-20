@@ -111,13 +111,13 @@ describe('getMinPoint', () => {
 describe('getRoutePoints', () => {
   it('should return empty when routes contain only empty element', () => {
     const routes = [[]];
-    const routesByLines = [];
-    const originStation = {};
-    const destStation = {};
+    const routesByLines = [['NS']];
+    const originStation = { NS: 4 };
+    const destStation = { NS: 10 };
 
     const routePoints = getRoutePoints(routes, routesByLines, originStation, destStation);
 
-    expect(routePoints).toHaveLength(0);
+    expect(routePoints).toEqual([6]);
   });
 
   it('should return correctly when origin station has same line with destination station', () => {

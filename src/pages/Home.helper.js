@@ -58,6 +58,8 @@ export const getRoutePoints = (routes, routesByLines, originStation, destStation
           );
         }
       });
+    } else {
+      routePoints[i] = getMinPoint(originStation[routesByLines[i][0]], destStation[routesByLines[i][0]]);
     }
   });
 

@@ -123,9 +123,8 @@ class Home extends Component {
           setDestStation={this.setDestStation}
         />
         <div className={styles.routes}>
-          {orderedRoutes.length === 0
-            ? <Empty description="Please choose origin station and destination station" />
-            : (
+          {orderedRoutes.length > 0
+            ? (
               <RoutesView
                 orderedRoutes={orderedRoutes}
                 orderedRoutesByLines={orderedRoutesByLines}
@@ -133,6 +132,7 @@ class Home extends Component {
                 destStation={destStation}
               />
             )
+            : <Empty description="Please choose origin station and destination station" />
           }
         </div>
       </div>
