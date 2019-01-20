@@ -17,7 +17,8 @@
     "react/destructuring-assignment": "off",
     "react/prefer-stateless-function": "off",
     "react/no-unused-state": "off",
-    "no-loop-func": "off"
+    "no-loop-func": "off",
+    "react/no-array-index-key": "off",
   },
   "settings": {
     "import/resolver": {

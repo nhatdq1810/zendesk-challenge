@@ -1,4 +1,8 @@
 export const getAdjStations = (allStations, originLine, visitedStations) => {
+  if (visitedStations.length === Object.keys(allStations).length) {
+    return { adjStations: [], visitedStations };
+  }
+
   const adjStations = [];
   const updatedVisitedStations = [...visitedStations];
 

@@ -92,11 +92,11 @@ class Home extends Component {
     const originLines = Object.keys(stations[originStationName]);
     const routes = [];
     const routesByLines = [];
+    this.visitedStations = [originStationName];
 
     Object.keys(stations[destStationName]).forEach((destLine) => {
       this.currentRoute = [];
       this.currentRouteByLines = [];
-      this.visitedStations = [originStationName];
       this.getRoutesUtil(routes, routesByLines, originLines, destLine);
     });
 
@@ -113,7 +113,6 @@ class Home extends Component {
       orderedRoutes, orderedRoutesByLines,
       originStation, destStation,
     } = this.state;
-    console.log(orderedRoutes);
     return (
       <div className={styles.wrapper}>
         <SearchStation
