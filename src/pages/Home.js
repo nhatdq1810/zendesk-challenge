@@ -4,22 +4,9 @@ import {
 } from 'antd';
 import styles from './Home.module.scss';
 import stations from '../utils/stations.json';
-
-export const getAdjStations = (allStations, originLine, visitedStations) => {
-  const adjStations = [];
-  const updatedVisitedStations = [...visitedStations];
-
-  Object.keys(allStations).forEach((name) => {
-    const stationLines = Object.keys(allStations[name]);
-    if (!updatedVisitedStations.includes(name)
-      && stationLines.length > 1 && stationLines.includes(originLine)) {
-      updatedVisitedStations.push(name);
-      adjStations.push(name);
-    }
-  });
-
-  return { adjStations, visitedStations: updatedVisitedStations };
-};
+import {
+  getAdjStations, searchStations, getRoutePoints, getOrderedRoutes,
+} from './Home.helper';
 
 class Home extends Component {
   constructor(props) {
@@ -34,17 +21,11 @@ class Home extends Component {
     this.stationNames = Object.keys(stations);
   }
 
-
-  searchStations = (value, oldState) => this.stationNames.filter(
-    sName => sName !== oldState.originStation && sName !== oldState.destStation
-      && sName.toLowerCase().includes(value.toLowerCase()),
-  )
-
   updateStateAfterSearch = (value, key) => {
-    this.setState(oldState => ({
-      dataSrcStations: this.searchStations(value, oldState),
+    this.setState({
+      dataSrcStations: searchStations(this.stationNames, value),
       [key]: value,
-    }));
+    });
   }
 
   searchOriginStation = (value) => {
@@ -79,79 +60,6 @@ class Home extends Component {
     });
   }
 
-  getMinPoint = (originPoint, destPoint) => {
-    const points = [];
-    let originPoints = originPoint;
-    let destPoints = destPoint;
-    if (!originPoint.length) {
-      originPoints = [originPoint];
-    }
-    if (!destPoint.length) {
-      destPoints = [destPoint];
-    }
-
-    originPoints.forEach((originP) => {
-      destPoints.forEach((destP) => {
-        points.push(Math.abs(originP - destP));
-      });
-    });
-
-    return Math.min(...points);
-  }
-
-  getRoutePoints = (routes, routesByLines, originStation, destStation) => {
-    const routePoints = [];
-    const changeLineBonus = 10;
-
-    routes.forEach((route, i) => {
-      if (route.length > 0) {
-        route.forEach((station, j) => {
-          if (j === 0) {
-            routePoints[i] = this.getMinPoint(originStation[routesByLines[i][j]], station[routesByLines[i][j]]);
-          } else {
-            const prevStation = route[j - 1];
-            routePoints[i] += changeLineBonus;
-            routePoints[i] += this.getMinPoint(prevStation[routesByLines[i][j]], station[routesByLines[i][j]]);
-          }
-
-          if (j === route.length - 1) {
-            routePoints[i] += this.getMinPoint(
-              station[routesByLines[i][routesByLines[i].length - 1]],
-              destStation[routesByLines[i][routesByLines[i].length - 1]],
-            );
-          }
-        });
-      }
-    });
-
-    return routePoints;
-  }
-
-  getOrderedRoutes = (routes, routesByLines, routePoints) => {
-    const orderedRoutes = [];
-    const orderedRoutesByLines = [];
-    const visitedIdx = [];
-
-    while (visitedIdx.length < routePoints.length) {
-      let minPoint = 9999;
-      let minPointIdx = -1;
-      routePoints.forEach((p, idx) => {
-        if (!visitedIdx.includes(idx) && p < minPoint) {
-          minPointIdx = idx;
-          minPoint = p;
-        }
-      });
-      visitedIdx.push(minPointIdx);
-      orderedRoutes.push(routes[minPointIdx]);
-      orderedRoutesByLines.push(routesByLines[minPointIdx]);
-    }
-
-    return {
-      orderedRoutes: orderedRoutes.slice(0, 9),
-      orderedRoutesByLines: orderedRoutesByLines.slice(0, 9),
-    };
-  }
-
   getRoutesUtil = (routes, routesByLines, originLines, destLine) => {
     if (originLines.some((originLine) => {
       if (originLine === destLine) {
@@ -180,22 +88,22 @@ class Home extends Component {
     });
   }
 
-  getRoutes = (originStation, destStation) => {
-    const originLines = Object.keys(stations[originStation]);
+  getRoutes = (originStationName, destStationName) => {
+    const originLines = Object.keys(stations[originStationName]);
     const routes = [];
     const routesByLines = [];
 
-    Object.keys(stations[destStation]).forEach((destLine) => {
+    Object.keys(stations[destStationName]).forEach((destLine) => {
       this.currentRoute = [];
       this.currentRouteByLines = [];
-      this.visitedStations = [originStation];
+      this.visitedStations = [originStationName];
       this.getRoutesUtil(routes, routesByLines, originLines, destLine);
     });
 
-    return this.getOrderedRoutes(
+    return getOrderedRoutes(
       routes,
       routesByLines,
-      this.getRoutePoints(routes, routesByLines, stations[originStation], stations[destStation]),
+      getRoutePoints(routes, routesByLines, stations[originStationName], stations[destStationName]),
     );
   }
 
@@ -205,6 +113,7 @@ class Home extends Component {
       orderedRoutes, orderedRoutesByLines,
       originStation, destStation,
     } = this.state;
+    console.log(orderedRoutes);
     return (
       <div className={styles.wrapper}>
         <div className={styles.searchStation}>
@@ -229,13 +138,13 @@ class Home extends Component {
           }
           {orderedRoutes.length > 0
             && (
-              <Collapse accordion bordered={false}>
+              <Collapse defaultActiveKey="0" bordered={false}>
                 {orderedRoutes.map((route, i) => {
                   const displayedRoute = [];
                   let routeIntro = '';
                   route.forEach((station, j) => {
                     if (j === 0) {
-                      routeIntro = `Via line ${orderedRoutesByLines[i][j]} in station ${station.name}`;
+                      routeIntro = `Via line ${orderedRoutesByLines[i][j]}, station ${station.name}`;
                       displayedRoute.push(
                         <Timeline.Item
                           color="red"
@@ -248,7 +157,7 @@ class Home extends Component {
                           </b>
                         </Timeline.Item>,
                       );
-                    } else {
+                    } else if (station.name !== destStation) {
                       displayedRoute.push(
                         <Timeline.Item key={`${route[j - 1].name} - ${station.name}`}>
                           <b>
@@ -257,9 +166,23 @@ class Home extends Component {
                           </b>
                         </Timeline.Item>,
                       );
-                    }
-
-                    if (j === route.length - 1 && station.name !== destStation) {
+                      console.log('station.name', station.name);
+                      console.log('j === route.length - 1', j === route.length - 1);
+                      if (j === route.length - 1) {
+                        displayedRoute.push(
+                          <Timeline.Item
+                            color="green"
+                            dot={<Icon type="logout" />}
+                            key={`${station.name} - ${destStation}`}
+                          >
+                            <b>
+                              Take line {orderedRoutesByLines[i][orderedRoutesByLines[i].length - 1]}
+                              &nbsp;from station {station.name} to station {destStation}
+                            </b>
+                          </Timeline.Item>,
+                        );
+                      }
+                    } else {
                       displayedRoute.push(
                         <Timeline.Item
                           color="green"
