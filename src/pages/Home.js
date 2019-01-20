@@ -124,16 +124,16 @@ class Home extends Component {
         />
         <div className={styles.routes}>
           {orderedRoutes.length === 0
-            && <Empty description="Please choose origin station and destination station" />
+            ? <Empty description="Please choose origin station and destination station" />
+            : (
+              <RoutesView
+                orderedRoutes={orderedRoutes}
+                orderedRoutesByLines={orderedRoutesByLines}
+                originStation={originStation}
+                destStation={destStation}
+              />
+            )
           }
-          {orderedRoutes.length > 0
-            && (
-            <RoutesView
-              orderedRoutes={orderedRoutes}
-              orderedRoutesByLines={orderedRoutesByLines}
-              originStation={originStation}
-              destStation={destStation}
-            />)}
         </div>
       </div>
     );
