@@ -13,7 +13,7 @@ export default function RoutesView({
   orderedRoutes, orderedRoutesByLines, originStation, destStation,
 }) {
   return (
-    <Collapse defaultActiveKey="0" bordered={false}>
+    <Collapse bordered={false}>
       {orderedRoutes.map((route, i) => {
         const displayedRoute = [];
         let routeIntro = '';
