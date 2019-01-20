@@ -10,6 +10,7 @@ export default function SearchStation({
   return (
     <div className={styles.wrapper}>
       <AutoComplete
+        autoFocus
         className={styles.input}
         dataSource={dataSrcStations}
         onSearch={searchOriginStation}
