@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
-import {
-  AutoComplete, Timeline, Collapse, Icon, Empty,
-} from 'antd';
+import { Empty } from 'antd';
 import styles from './Home.module.scss';
 import stations from '../utils/stations.json';
 import {
   getAdjStations, searchStations, getRoutePoints, getOrderedRoutes,
 } from './Home.helper';
+import SearchStation from './home/SearchStation';
+import RoutesView from './home/RoutesView';
 
 class Home extends Component {
   constructor(props) {
@@ -116,98 +116,25 @@ class Home extends Component {
     console.log(orderedRoutes);
     return (
       <div className={styles.wrapper}>
-        <div className={styles.searchStation}>
-          <AutoComplete
-            className={styles.searchStationInput}
-            dataSource={dataSrcStations}
-            onSearch={this.searchOriginStation}
-            onSelect={this.setOriginStation}
-            placeholder="Choose origin station"
-          />
-          <AutoComplete
-            className={styles.searchStationInput}
-            dataSource={dataSrcStations}
-            onSearch={this.searchDestStation}
-            onSelect={this.setDestStation}
-            placeholder="Choose destination station"
-          />
-        </div>
+        <SearchStation
+          dataSrcStations={dataSrcStations}
+          searchOriginStation={this.searchOriginStation}
+          setOriginStation={this.setOriginStation}
+          searchDestStation={this.searchDestStation}
+          setDestStation={this.setDestStation}
+        />
         <div className={styles.routes}>
           {orderedRoutes.length === 0
             && <Empty description="Please choose origin station and destination station" />
           }
           {orderedRoutes.length > 0
             && (
-              <Collapse defaultActiveKey="0" bordered={false}>
-                {orderedRoutes.map((route, i) => {
-                  const displayedRoute = [];
-                  let routeIntro = '';
-                  route.forEach((station, j) => {
-                    if (j === 0) {
-                      routeIntro = `Via line ${orderedRoutesByLines[i][j]}, station ${station.name}`;
-                      displayedRoute.push(
-                        <Timeline.Item
-                          color="red"
-                          dot={<Icon type="login" />}
-                          key={`${originStation} - ${station.name}`}
-                        >
-                          <b>
-                            Take line {orderedRoutesByLines[i][j]}
-                            &nbsp;from station {originStation} to station {station.name}
-                          </b>
-                        </Timeline.Item>,
-                      );
-                    } else if (station.name !== destStation) {
-                      displayedRoute.push(
-                        <Timeline.Item key={`${route[j - 1].name} - ${station.name}`}>
-                          <b>
-                            Take line {orderedRoutesByLines[i][j]}
-                            &nbsp;from station {route[j - 1].name} to station {station.name}
-                          </b>
-                        </Timeline.Item>,
-                      );
-                      console.log('station.name', station.name);
-                      console.log('j === route.length - 1', j === route.length - 1);
-                      if (j === route.length - 1) {
-                        displayedRoute.push(
-                          <Timeline.Item
-                            color="green"
-                            dot={<Icon type="logout" />}
-                            key={`${station.name} - ${destStation}`}
-                          >
-                            <b>
-                              Take line {orderedRoutesByLines[i][orderedRoutesByLines[i].length - 1]}
-                              &nbsp;from station {station.name} to station {destStation}
-                            </b>
-                          </Timeline.Item>,
-                        );
-                      }
-                    } else {
-                      displayedRoute.push(
-                        <Timeline.Item
-                          color="green"
-                          dot={<Icon type="logout" />}
-                          key={`${station.name} - ${destStation}`}
-                        >
-                          <b>
-                            Take line {orderedRoutesByLines[i][orderedRoutesByLines[i].length - 1]}
-                            &nbsp;from station {station.name} to station {destStation}
-                          </b>
-                        </Timeline.Item>,
-                      );
-                    }
-                  });
-
-                  return (
-                    <Collapse.Panel header={routeIntro}>
-                      <Timeline>
-                        {displayedRoute}
-                      </Timeline>
-                    </Collapse.Panel>
-                  );
-                })}
-              </Collapse>
-            )}
+            <RoutesView
+              orderedRoutes={orderedRoutes}
+              orderedRoutesByLines={orderedRoutesByLines}
+              originStation={originStation}
+              destStation={destStation}
+            />)}
         </div>
       </div>
     );

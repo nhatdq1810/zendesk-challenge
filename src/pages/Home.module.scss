@@ -4,22 +4,6 @@
   min-height: 100vh;
 }
 
-.searchStation {
-  flex-basis: 25%;
-  padding-right: 2%;
-  margin-right: 2%;
-  border-right: 1px solid #d9d9d9;
-  display: flex;
-  flex-direction: column;
-}
-
-.searchStationInput {
-  width: 100%;
-  &:first-child {
-    margin-bottom: 5%;
-  }
-}
-
 .routes {
   flex-basis: 75%;
 }
